@@ -68,7 +68,7 @@ ALBUM=`sed "${NUM}q;d" $CDPF_ALBUM_LIST`
 
 echo "Selected $ALBUM"
 
-rm "$CDPF_BASE/show" && ln -sf "$CDPF_BASE/sync/$ALBUM" "$CDPF_BASE/show"
+rm -f "$CDPF_BASE/show" && ln -sf "$CDPF_BASE/sync/$ALBUM" "$CDPF_BASE/show"
 
 kill -SIGURG `cat "$CDPF_PID_FILE"` &>>"$CDPF_LOG"
 sleep 1s
