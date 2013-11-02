@@ -31,7 +31,7 @@ for i in $(seq 1 $count) ; do
 
 	rm -f filelist.txt
 	
-	wget -mNrnd -U CDPF -l 1 "${CDPF_SYNC_URL}$i" 2>&1 | tee rawout.txt | egrep '^--' | egrep -o '[-a-zA-Z0-9_.]*[.](jpe?g|png|gif)' | sort -u >filelist.txt
+	wget -mNrnd -U CDPF -l 1 "${CDPF_SYNC_URL}$i" 2>&1 | tee rawout.txt | egrep '^--' | egrep -io '[-a-zA-Z0-9_.]*[.](jpe?g|png|gif)' | sort -u >filelist.txt
 	
 	if [ -s filelist.txt ]; then
 	
