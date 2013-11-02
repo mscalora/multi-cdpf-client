@@ -90,6 +90,11 @@ Here’s what you should install for the full CDPF system:
  - lighttpd
  - git
 
+Other optional item:
+
+ - exiv2
+ - libimage-exiftool-perl
+
 You can get it all done in one go with:
 
 ```pi@raspberrypi ~ $ sudo apt-get install feh lighttpd git```
@@ -98,7 +103,7 @@ You can get it all done in one go with:
 
 In the home directory, get the latest software:
 
-```pi@raspberrypi ~ $ git clone https://github.com/mscalora/cdpf-client.git```
+```pi@raspberrypi ~ $ git clone https://github.com/mscalora/multi-cdpf-client.git```
 
 There is a setup script that you can examine called setup.sh. If this is a brand new Pi, there’s not much to mess up, but just in case you can look at the setup script to see what it is doing. To run it, type:
 
