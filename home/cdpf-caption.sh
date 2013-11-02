@@ -4,7 +4,7 @@
 
 if [[ "`which exiv2`" == "" ]] ; then
 	date +%l:%m%p
-	echo "$*"
+	echo "$2"
 else
-	exiv2 -g Exif.Photo.UserComment -P t %f
+	exiv2 -g Exif.Photo.UserComment -P t $1
 fi

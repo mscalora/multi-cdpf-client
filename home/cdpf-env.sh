@@ -13,7 +13,7 @@ CDPF_FEH_OPTIONS="--fontpath /home/pi"
 if [ -x "`which fehplus`" ]; then
 	CDPF_FEH_BIN=fehplus
 	if [ -e "$CDPF_BASE/cdpf-caption.sh" ] ; then
-		CDPF_FEH_OPTIONS="$CDPF_FEH_OPTIONS --center-info --autofit-info --font yudit/32 --info='$CDPF_BASE/cdpf-caption.sh \"%n %u of %l\"'"
+		CDPF_FEH_OPTIONS="$CDPF_FEH_OPTIONS --center-info --autofit-info --font yudit/32 --info='$CDPF_BASE/cdpf-caption.sh \"%f\" \"%n\" \"%u of %l\"'"
 	fi
 else
 	CDPF_FEH_BIN=feh
@@ -35,7 +35,7 @@ else
 #!/bin/bash
 # on lines with ###, fill in the values and remove the ###
 # sync URL
-###CDPF_SYNC_URL="http://test-cdpfserver.rhcloud.com/sync"
+###CDPF_SYNC_URL="http://cdpf-test.mscalora.com/"
 # slide show delay
 ###CDPF_PHOTO_DELAY=6
 
