@@ -72,7 +72,7 @@ done
 
 echo "Copying autostart item(s)..."
 mkdir -p "$PWD/.config/autostart"
-cp "$SETUP_PATH"/misc/*.desktop "$PWD/.config/autostart"
+cp "$SETUP_PATH"/misc/.desktop "$PWD/.config/autostart"
 
 if [ -s "$PWD/cdpf.conf" ] ; then
 	echo "Config file exists"
