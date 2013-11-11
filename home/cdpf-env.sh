@@ -25,6 +25,10 @@ CDPF_LOG=/var/log/cdpf/cdpf.log
 # pid for feh
 CDPF_PID_FILE=/var/run/cdpf-feh.pid
 
+# album offset & list
+CDPF_OFFSET_FILE="$CDPF_BASE/offset.txt"
+CDPF_ALBUM_LIST="$CDPF_BASE/albumlist.txt"
+
 DATE="[ `date '+%Y-%m-%d %H:%M:%S'` ]"
 
 # process overrides

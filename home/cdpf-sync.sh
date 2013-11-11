@@ -6,69 +6,84 @@ source "/home/pi/cdpf-env.sh"
 
 cd /home/pi/sync
 
-count=`wget -q -O - "${CDPF_SYNC_URL}?count"`
-
-echo "Getting count from: ${CDPF_SYNC_URL}?count"
-echo "Got: $count"
-
-echo $count | egrep "[0-9]+"
-
+PID=`ps -Ao pid,command | egrep '[f]eh' | egrep -o '^ *[0-9]+'`
 if [ $? -eq 1 ] ; then
-	exit
+	"$CDPF_BASE/cdpf-startup.sh"
+	sleep 15s
 fi
 
-echo "Getting photos"
+IP=`ifconfig | egrep -o 'inet addr: *[0-9.]*' | egrep -o '[0-9.]*' | egrep -v '^127[.]'`
+echo "IP: $IP"
 
-CDPF_ALBUM_LIST="$CDPF_BASE/albumlist.txt"
+COUNT=`wget -q -O - "${CDPF_SYNC_URL}?count=1&ip=$IP"`
 
-rm -f "$CDPF_ALBUM_LIST"
+echo "" >>"$CDPF_LOG"
+echo "$DATE Got count of '$COUNT' from: ${CDPF_SYNC_URL}?count=1&ip=$IP " | tee >>"$CDPF_LOG"
 
-for i in $(seq 1 $count) ; do
-	echo "Syncing album $i"
+echo $COUNT | egrep -qs "[0-9]+"
+
+if [ $? -eq 1 ] ; then
 	
-	mkdir -p "$CDPF_BASE/sync/$i"
-	cd "$CDPF_BASE/sync/$i"
-
-	rm -f filelist.txt
+	echo "$DATE Network connection unavailable" | tee >>"$CDPF_LOG"
 	
-	wget -mNrnd -U CDPF -l 1 "${CDPF_SYNC_URL}$i" 2>&1 | tee rawout.txt | egrep '^--' | egrep -io '[-a-zA-Z0-9_.]*[.](jpe?g|png|gif)' | sort -u >filelist.txt
-	
-	if [ -s filelist.txt ]; then
-	
-		cat filelist.txt
+else
 
-		NOT_EMPTY=0
+	rm -f "$CDPF_ALBUM_LIST"
 
-		for f in $( shopt -s nocaseglob ; ls *.jpg *.jpeg *.png *.gif 2>/dev/null ) ; do
-			grep -qF "$f" filelist.txt
-			if [ $? -eq 1 ] ; then
-				rm "$f"
-			else
-				NOT_EMPTY=1
+	COUNTS=""
+
+	for i in $(seq 1 $COUNT) ; do
+		echo "$DATE Syncing album $i" | tee >>"$CDPF_LOG"
+	
+		mkdir -p "$CDPF_BASE/sync/$i"
+		cd "$CDPF_BASE/sync/$i"
+
+		rm -f filelist.txt
+	
+		wget -mNrnd -U CDPF -l 1 "${CDPF_SYNC_URL}$i" 2>&1 | tee rawout.txt | egrep '^--' | egrep -io '[-a-zA-Z0-9_.]*[.](jpe?g|png|gif)' | sort -u >filelist.txt
+	
+		if [ -s filelist.txt ]; then
+	
+			cat filelist.txt
+
+			NOT_EMPTY=0
+
+			for f in $( shopt -s nocaseglob ; ls *.jpg *.jpeg *.png *.gif 2>/dev/null ) ; do
+				grep -qF "$f" filelist.txt
+				if [ $? -eq 1 ] ; then
+					rm "$f"
+				else
+					NOT_EMPTY=1
+				fi
+			done
+	
+			if [ $NOT_EMPTY -eq 1 ] ; then
+				echo "$i" >>"$CDPF_ALBUM_LIST"
 			fi
-		done
 	
-		if [ $NOT_EMPTY -eq 1 ] ; then
-			echo "$i" >>"$CDPF_ALBUM_LIST"
+			IMAGECOUNT=`ls -1 *.[jgp]* | wc -l`
+			STORAGE=`du -sh | awk '{print $1}'`
+			
+			COUNTS="$COUNTS $IMAGECOUNT"
+			
+			echo "$DATE Sync: there are $IMAGECOUNT images using $STORAGE of space in album $i" | tee >>"$CDPF_LOG"
+	
+		else 
+			echo "$DATE Sync failed" >>"$CDPF_LOG"
 		fi
 	
-		echo "$DATE Sync: there are `cat filelist.txt | wc -l` files, `du -ch *.[jpg]* | tail -n 1 | egrep -o \"^\\S*\"` total - $CDPF_SYNC_URL" >>"$CDPF_LOG"
-	
-	else 
-		echo "$DATE Sync failed" >>"$CDPF_LOG"
-	fi
-	
-done
+	done
 
-NUM=$(( `date "+%j"` % `cat $CDPF_ALBUM_LIST | wc -l` + 1 ))
+	NUM=$((  ( `cat $CDPF_OFFSET_FILE` + `date "+%j + %H"` ) % `cat $CDPF_ALBUM_LIST | wc -l` + 1 ))
 
-echo "Album Nth line: $NUM"
+	ALBUM=`sed "${NUM}q;d" $CDPF_ALBUM_LIST`
 
-ALBUM=`sed "${NUM}q;d" $CDPF_ALBUM_LIST`
+	echo "$DATE Image counts by album: $COUNTS" | tee >>"$CDPF_LOG"
+	echo "$DATE Selected Album: $ALBUM" | tee >>"$CDPF_LOG"
 
-echo "Selected $ALBUM"
+	rm -f "$CDPF_BASE/show" && ln -sf "$CDPF_BASE/sync/$ALBUM" "$CDPF_BASE/show"
 
-rm -f "$CDPF_BASE/show" && ln -sf "$CDPF_BASE/sync/$ALBUM" "$CDPF_BASE/show"
+fi
 
 kill -SIGURG `cat "$CDPF_PID_FILE"` &>>"$CDPF_LOG"
 sleep 1s
